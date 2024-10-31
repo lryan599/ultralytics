@@ -21,6 +21,7 @@ TensorFlow Lite         | `tflite`                  | yolov8n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
 TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
 PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
+MNN                     | `mnn`                     | yolov8n.mnn
 NCNN                    | `ncnn`                    | yolov8n_ncnn_model/
 """
 
@@ -47,7 +48,7 @@ from ultralytics.utils.torch_utils import get_cpu_info, select_device
 
 
 def benchmark(
-    model=WEIGHTS_DIR / "yolov8n.pt",
+    model=WEIGHTS_DIR / "yolo11n.pt",
     data=None,
     imgsz=160,
     half=False,
@@ -76,7 +77,7 @@ def benchmark(
     Examples:
         Benchmark a YOLO model with default settings:
         >>> from ultralytics.utils.benchmarks import benchmark
-        >>> benchmark(model="yolov8n.pt", imgsz=640)
+        >>> benchmark(model="yolo11n.pt", imgsz=640)
     """
     import pandas as pd  # scope for faster 'import ultralytics'
 
@@ -111,8 +112,8 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
                 assert LINUX or MACOS, "Windows Paddle exports not supported yet"
-            if i in {12}:  # NCNN
-                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
+            if i in {12, 13}:  # MNN, NCNN
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN, NCNN exports not supported yet"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
@@ -132,7 +133,7 @@ def benchmark(
             assert model.task != "pose" or i != 7, "GraphDef Pose inference is not supported"
             assert i not in {9, 10}, "inference not supported"  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
-            if i in {12}:
+            if i in {13}:
                 assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half)
 
